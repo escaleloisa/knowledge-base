@@ -1,0 +1,17 @@
+# Binaries
+bin/
+*.exe
+
+# Environment (contains secrets)
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
