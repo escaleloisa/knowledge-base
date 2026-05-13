@@ -297,43 +297,27 @@ GET tag:docker
 ```
 knowledge-base/
 ├── SPEC.md
-├── Makefile
 ├── docker-compose.yml
-├── go.mod
-├── cmd/
-│   ├── note-service/main.go
-│   ├── search-indexer/main.go
-│   ├── search-api/main.go
-│   ├── tag-aggregator/main.go
-│   ├── backlink-extractor/main.go
-│   └── note-importer/main.go
-├── internal/
+├── k8s/
 │   ├── note-service/
-│   │   ├── handler/
-│   │   ├── service/
-│   │   ├── repository/
-│   │   └── routes/
+│   ├── search-indexer/
+│   ├── search-api/
+│   ├── tag-aggregator/
+│   ├── backlink-extractor/
+│   ├── note-importer/
+│   └── infrastructure/
+├── services/
+│   ├── note-service/
 │   ├── search-indexer/
 │   ├── search-api/
 │   ├── tag-aggregator/
 │   ├── backlink-extractor/
 │   └── note-importer/
 ├── pkg/
-│   ├── config/
+│   ├── kafka/
 │   ├── models/
-│   ├── response/
-│   └── kafka/
-├── deployments/
-│   ├── docker/
-│   │   ├── note-service/Dockerfile
-│   │   ├── search-indexer/Dockerfile
-│   │   └── ...
-│   └── k8s/
-│       ├── note-service/
-│       ├── search-indexer/
-│       └── infrastructure/
+│   └── config/
 └── scripts/
-    └── init.sql
 ```
 
 ## Non-Goals (for now)
