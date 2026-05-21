@@ -1,0 +1,5 @@
+# Docker Basics
+
+Docker packages your application with all its dependencies into a container.
+
+See also [[Go Channels]] for concurrency patterns.
