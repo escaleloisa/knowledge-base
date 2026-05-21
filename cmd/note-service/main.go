@@ -14,6 +14,7 @@ import (
 	"github.com/escaleloisa/knowledge-base/internal/note-service/routes"
 	"github.com/escaleloisa/knowledge-base/internal/note-service/service"
 	"github.com/escaleloisa/knowledge-base/pkg/config"
+	kafkapkg "github.com/escaleloisa/knowledge-base/pkg/kafka"
 )
 
 func main() {
@@ -29,8 +30,11 @@ func main() {
 		log.Fatal("failed to ping database:", err)
 	}
 
+	writer := kafkapkg.NewWriter(cfg.KafkaBrokers)
+	defer writer.Close()
+
 	repo := repository.New(db)
-	svc := service.New(repo)
+	svc := service.New(repo, writer)
 	h := handler.New(svc)
 
 	mux := http.NewServeMux()
