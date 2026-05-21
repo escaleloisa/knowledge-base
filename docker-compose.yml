@@ -16,6 +16,61 @@ services:
       timeout: 3s
       retries: 5
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   note-service:
     build:
       context: .
@@ -23,11 +78,83 @@ services:
     environment:
       PORT: "${PORT}"
       DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+      KAFKA_BROKERS: "kafka:9092"
     ports:
       - "${PORT}:${PORT}"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  search-indexer:
+    build:
+      context: .
+      dockerfile: deployments/docker/search-indexer/Dockerfile
+    environment:
+      KAFKA_BROKERS: "kafka:9092"
+      ELASTICSEARCH_URL: "http://elasticsearch:9200"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+
+  search-api:
+    build:
+      context: .
+      dockerfile: deployments/docker/search-api/Dockerfile
+    environment:
+      PORT: "8081"
+      ELASTICSEARCH_URL: "http://elasticsearch:9200"
+    ports:
+      - "8081:8081"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  tag-aggregator:
+    build:
+      context: .
+      dockerfile: deployments/docker/tag-aggregator/Dockerfile
+    environment:
+      KAFKA_BROKERS: "kafka:9092"
+      REDIS_URL: "redis://redis:6379"
+      PORT: "8082"
+    ports:
+      - "8082:8082"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  backlink-extractor:
+    build:
+      context: .
+      dockerfile: deployments/docker/backlink-extractor/Dockerfile
+    environment:
+      KAFKA_BROKERS: "kafka:9092"
+      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  note-importer:
+    build:
+      context: .
+      dockerfile: deployments/docker/note-importer/Dockerfile
+    environment:
+      NOTE_SERVICE_URL: "http://note-service:${PORT}"
+      IMPORT_PATH: "/import"
+    volumes:
+      - ./import:/import
+    depends_on:
+      note-service:
+        condition: service_started
 
 volumes:
   pgdata:
+  esdata:
