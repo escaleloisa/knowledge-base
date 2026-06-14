@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 	"regexp"
+	"strings"
 
 	kafkapkg "github.com/escaleloisa/knowledge-base/pkg/kafka"
 	"github.com/segmentio/kafka-go"
@@ -66,13 +67,20 @@ func (e *Extractor) processNote(ctx context.Context, event kafkapkg.Event) error
 
 	for _, match := range matches {
 		title := match[1]
-		// Find target note by title
+		// Find target note by title (case-insensitive, normalize hyphens to spaces)
 		var targetID string
 		err := e.db.QueryRowContext(ctx,
-			`SELECT id FROM notes WHERE title = $1 AND id != $2`, title, event.NoteID,
+			`SELECT id FROM notes WHERE LOWER(title) = LOWER($1) AND id != $2`, title, event.NoteID,
 		).Scan(&targetID)
 		if err != nil {
-			continue // Target note doesn't exist, skip
+			// Try again with hyphens replaced by spaces
+			normalized := strings.ReplaceAll(title, "-", " ")
+			err = e.db.QueryRowContext(ctx,
+				`SELECT id FROM notes WHERE LOWER(title) = LOWER($1) AND id != $2`, normalized, event.NoteID,
+			).Scan(&targetID)
+			if err != nil {
+				continue // Target note doesn't exist, skip
+			}
 		}
 
 		// Insert backlink

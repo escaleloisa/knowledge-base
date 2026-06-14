@@ -47,11 +47,19 @@ func (s *Service) Update(ctx context.Context, id string, req models.UpdateNoteRe
 }
 
 func (s *Service) Delete(ctx context.Context, id string) error {
+	// Get the note first so we can publish its tags in the delete event
+	note, _ := s.repo.Get(ctx, id)
+
 	err := s.repo.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
-	s.publishEvent(ctx, kafkapkg.EventNoteDeleted, &models.Note{ID: id})
+
+	if note != nil {
+		s.publishEvent(ctx, kafkapkg.EventNoteDeleted, note)
+	} else {
+		s.publishEvent(ctx, kafkapkg.EventNoteDeleted, &models.Note{ID: id})
+	}
 	return nil
 }
 
