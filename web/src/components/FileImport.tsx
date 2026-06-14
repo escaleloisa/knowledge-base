@@ -17,6 +17,7 @@ interface FileImportProps {
 export function FileImport({ collections }: FileImportProps) {
   const [files, setFiles] = useState<ParsedFile[]>([]);
   const [selectedCollection, setSelectedCollection] = useState('');
+  const [globalTags, setGlobalTags] = useState('');
   const [importing, setImporting] = useState(false);
   const [results, setResults] = useState<{ success: number; failed: number } | null>(null);
 
@@ -66,12 +67,15 @@ export function FileImport({ collections }: FileImportProps) {
     let failed = 0;
     const noteIds: string[] = [];
 
+    const extraTags = globalTags.split(',').map(t => t.trim()).filter(Boolean);
+
     for (const file of files) {
       try {
+        const allTags = [...new Set([...file.tags, ...extraTags])];
         const note = await api.notes.create({
           title: file.title,
           content: file.content,
-          tags: file.tags,
+          tags: allTags,
         });
         noteIds.push(note.id);
         success++;
@@ -155,6 +159,20 @@ export function FileImport({ collections }: FileImportProps) {
                 <option key={col.id} value={col.id}>{col.name}</option>
               ))}
             </select>
+          </div>
+
+          {/* Tags input */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Add tags to all files (optional, comma separated)
+            </label>
+            <input
+              type="text"
+              value={globalTags}
+              onChange={(e) => setGlobalTags(e.target.value)}
+              placeholder="e.g. docker, devops, tutorial"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
           </div>
 
           {/* Import button */}
