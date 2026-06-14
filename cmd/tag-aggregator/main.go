@@ -12,6 +12,7 @@ import (
 	"github.com/escaleloisa/knowledge-base/internal/tag-aggregator/handler"
 	"github.com/escaleloisa/knowledge-base/pkg/config"
 	kafkapkg "github.com/escaleloisa/knowledge-base/pkg/kafka"
+	"github.com/escaleloisa/knowledge-base/pkg/middleware"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -41,7 +42,7 @@ func main() {
 	go func() {
 		addr := fmt.Sprintf(":%s", cfg.Port)
 		log.Printf("Tag aggregator HTTP on %s", addr)
-		http.ListenAndServe(addr, mux)
+		http.ListenAndServe(addr, middleware.CORS(mux))
 	}()
 
 	log.Println("Tag aggregator starting...")

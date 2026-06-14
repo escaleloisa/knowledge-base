@@ -15,6 +15,7 @@ import (
 	"github.com/escaleloisa/knowledge-base/internal/note-service/service"
 	"github.com/escaleloisa/knowledge-base/pkg/config"
 	kafkapkg "github.com/escaleloisa/knowledge-base/pkg/kafka"
+	"github.com/escaleloisa/knowledge-base/pkg/middleware"
 )
 
 func main() {
@@ -42,5 +43,5 @@ func main() {
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	log.Printf("Note service listening on %s", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	log.Fatal(http.ListenAndServe(addr, middleware.CORS(mux)))
 }
