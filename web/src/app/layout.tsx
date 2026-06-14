@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="light" style={{ colorScheme: 'light' }}>
       <body className="antialiased h-screen flex flex-col">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0">
