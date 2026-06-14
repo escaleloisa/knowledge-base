@@ -155,6 +155,21 @@ services:
       note-service:
         condition: service_started
 
+  web-ui:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_NOTE_SERVICE_URL=${NEXT_PUBLIC_NOTE_SERVICE_URL:-http://localhost:8080}
+        - NEXT_PUBLIC_SEARCH_API_URL=${NEXT_PUBLIC_SEARCH_API_URL:-http://localhost:8081}
+        - NEXT_PUBLIC_TAG_API_URL=${NEXT_PUBLIC_TAG_API_URL:-http://localhost:8082}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - note-service
+      - search-api
+      - tag-aggregator
+
 volumes:
   pgdata:
   esdata:
