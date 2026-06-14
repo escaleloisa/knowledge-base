@@ -26,11 +26,12 @@ type mockService struct {
 	listCollectionNotesFn  func(ctx context.Context, collectionID string, limit, offset int) ([]models.Note, error)
 
 	// Note methods (required by interface)
-	createFn func(ctx context.Context, req models.CreateNoteRequest) (*models.Note, error)
-	getFn    func(ctx context.Context, id string) (*models.Note, error)
-	updateFn func(ctx context.Context, id string, req models.UpdateNoteRequest) (*models.Note, error)
-	deleteFn func(ctx context.Context, id string) error
-	listFn   func(ctx context.Context, limit, offset int) ([]models.Note, error)
+	createFn       func(ctx context.Context, req models.CreateNoteRequest) (*models.Note, error)
+	getFn          func(ctx context.Context, id string) (*models.Note, error)
+	updateFn       func(ctx context.Context, id string, req models.UpdateNoteRequest) (*models.Note, error)
+	deleteFn       func(ctx context.Context, id string) error
+	listFn         func(ctx context.Context, limit, offset int) ([]models.Note, error)
+	getBacklinksFn func(ctx context.Context, noteID string) ([]models.Note, error)
 }
 
 func (m *mockService) Create(ctx context.Context, req models.CreateNoteRequest) (*models.Note, error) {
@@ -64,6 +65,13 @@ func (m *mockService) Delete(ctx context.Context, id string) error {
 func (m *mockService) List(ctx context.Context, limit, offset int) ([]models.Note, error) {
 	if m.listFn != nil {
 		return m.listFn(ctx, limit, offset)
+	}
+	return nil, nil
+}
+
+func (m *mockService) GetBacklinks(ctx context.Context, noteID string) ([]models.Note, error) {
+	if m.getBacklinksFn != nil {
+		return m.getBacklinksFn(ctx, noteID)
 	}
 	return nil, nil
 }

@@ -99,3 +99,16 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	}
 	response.JSON(w, http.StatusOK, notes)
 }
+
+func (h *Handler) GetBacklinks(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	notes, err := h.svc.GetBacklinks(r.Context(), id)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "failed to get backlinks")
+		return
+	}
+	if notes == nil {
+		notes = []models.Note{}
+	}
+	response.JSON(w, http.StatusOK, notes)
+}

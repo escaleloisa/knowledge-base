@@ -37,3 +37,7 @@ func (s *Service) RemoveNoteFromCollection(ctx context.Context, collectionID, no
 func (s *Service) ListCollectionNotes(ctx context.Context, collectionID string, limit, offset int) ([]models.Note, error) {
 	return s.repo.ListCollectionNotes(ctx, collectionID, limit, offset)
 }
+
+func (s *Service) GetBacklinks(ctx context.Context, noteID string) ([]models.Note, error) {
+	return s.repo.GetBacklinks(ctx, noteID)
+}

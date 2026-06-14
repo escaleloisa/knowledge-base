@@ -25,4 +25,7 @@ type ServiceInterface interface {
 	AddNotesToCollection(ctx context.Context, collectionID string, noteIDs []string) (int, error)
 	RemoveNoteFromCollection(ctx context.Context, collectionID, noteID string) error
 	ListCollectionNotes(ctx context.Context, collectionID string, limit, offset int) ([]models.Note, error)
+
+	// Backlinks
+	GetBacklinks(ctx context.Context, noteID string) ([]models.Note, error)
 }

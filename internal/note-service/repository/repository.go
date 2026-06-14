@@ -93,3 +93,27 @@ func (r *Repository) List(ctx context.Context, limit, offset int) ([]models.Note
 	}
 	return notes, rows.Err()
 }
+
+func (r *Repository) GetBacklinks(ctx context.Context, noteID string) ([]models.Note, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT n.id, n.title, n.content, n.tags, n.created_at, n.updated_at
+		 FROM notes n
+		 JOIN backlinks b ON b.source_note_id = n.id
+		 WHERE b.target_note_id = $1
+		 ORDER BY n.created_at DESC`, noteID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get backlinks: %w", err)
+	}
+	defer rows.Close()
+
+	var notes []models.Note
+	for rows.Next() {
+		var n models.Note
+		if err := rows.Scan(&n.ID, &n.Title, &n.Content, pq.Array(&n.Tags), &n.CreatedAt, &n.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("scan backlink note: %w", err)
+		}
+		notes = append(notes, n)
+	}
+	return notes, rows.Err()
+}
