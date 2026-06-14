@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, Note } from '@/lib/api';
 import { MarkdownViewer } from '@/components/MarkdownViewer';
 
 export default function NotePage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [note, setNote] = useState<Note | null>(null);
   const [backlinks, setBacklinks] = useState<Note[]>([]);
@@ -52,12 +53,25 @@ export default function NotePage() {
               </span>
             </div>
           </div>
-          <Link
-            href={`/notes/${id}/edit`}
-            className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-          >
-            Edit
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href={`/notes/${id}/edit`}
+              className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            >
+              Edit
+            </Link>
+            <button
+              onClick={async () => {
+                if (confirm('Delete this note?')) {
+                  await api.notes.delete(id);
+                  router.push('/');
+                }
+              }}
+              className="px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+            >
+              Delete
+            </button>
+          </div>
         </div>
 
         {/* Content */}

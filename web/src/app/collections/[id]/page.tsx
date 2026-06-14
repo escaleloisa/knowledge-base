@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { api, Collection, Note } from '@/lib/api';
 import { NoteCard } from '@/components/NoteCard';
 
 export default function CollectionPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [collection, setCollection] = useState<Collection | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -36,12 +37,25 @@ export default function CollectionPage() {
   return (
     <main className="flex-1 overflow-y-auto p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{collection.name}</h1>
-          {collection.description && (
-            <p className="text-gray-500 mt-1">{collection.description}</p>
-          )}
-          <p className="text-sm text-gray-400 mt-1">{collection.note_count} notes</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{collection.name}</h1>
+            {collection.description && (
+              <p className="text-gray-500 mt-1">{collection.description}</p>
+            )}
+            <p className="text-sm text-gray-400 mt-1">{collection.note_count} notes</p>
+          </div>
+          <button
+            onClick={async () => {
+              if (confirm('Delete this collection? Notes will not be deleted.')) {
+                await api.collections.delete(id);
+                router.push('/');
+              }
+            }}
+            className="px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+          >
+            Delete Collection
+          </button>
         </div>
 
         {notes.length === 0 ? (
