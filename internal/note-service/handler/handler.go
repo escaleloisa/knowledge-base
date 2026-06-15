@@ -11,10 +11,10 @@ import (
 )
 
 type Handler struct {
-	svc *service.Service
+	svc ServiceInterface
 }
 
-func New(svc *service.Service) *Handler {
+func New(svc ServiceInterface) *Handler {
 	return &Handler{svc: svc}
 }
 
@@ -96,6 +96,22 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "failed to list notes")
 		return
+	}
+	if notes == nil {
+		notes = []models.Note{}
+	}
+	response.JSON(w, http.StatusOK, notes)
+}
+
+func (h *Handler) GetBacklinks(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	notes, err := h.svc.GetBacklinks(r.Context(), id)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "failed to get backlinks")
+		return
+	}
+	if notes == nil {
+		notes = []models.Note{}
 	}
 	response.JSON(w, http.StatusOK, notes)
 }

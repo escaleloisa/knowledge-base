@@ -43,7 +43,9 @@ func (c *Consumer) Run(ctx context.Context) error {
 		case kafkapkg.EventNoteUpdated:
 			c.incrementTags(ctx, event.Note.Tags)
 		case kafkapkg.EventNoteDeleted:
-			// For simplicity, we don't decrement on delete in this version
+			if event.Note != nil {
+				c.decrementTags(ctx, event.Note.Tags)
+			}
 		}
 	}
 }
@@ -54,4 +56,18 @@ func (c *Consumer) incrementTags(ctx context.Context, tags []string) {
 		c.rdb.ZIncrBy(ctx, "tags:all", 1, tag)
 	}
 	log.Printf("updated tags: %v", tags)
+}
+
+func (c *Consumer) decrementTags(ctx context.Context, tags []string) {
+	for _, tag := range tags {
+		c.rdb.Decr(ctx, fmt.Sprintf("tag:%s", tag))
+		c.rdb.ZIncrBy(ctx, "tags:all", -1, tag)
+		// Remove tag if count reaches 0
+		score, err := c.rdb.ZScore(ctx, "tags:all", tag).Result()
+		if err == nil && score <= 0 {
+			c.rdb.ZRem(ctx, "tags:all", tag)
+			c.rdb.Del(ctx, fmt.Sprintf("tag:%s", tag))
+		}
+	}
+	log.Printf("decremented tags: %v", tags)
 }
