@@ -13,7 +13,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
   // Replace [[wiki-links]] with clickable links to search
   const processedContent = content.replace(
     /\[\[([^\]]+)\]\]/g,
-    (_, link) => `[${link}](/search?q=${link.replace(/-/g, ' ')})`
+    (_, link) => `[${link}](/search?q=${encodeURIComponent(link.replace(/-/g, ' '))})`
   );
 
   return (
