@@ -10,10 +10,10 @@ interface MarkdownViewerProps {
 }
 
 export function MarkdownViewer({ content }: MarkdownViewerProps) {
-  // Replace [[wiki-links]] with clickable links
+  // Replace [[wiki-links]] with clickable links to search
   const processedContent = content.replace(
     /\[\[([^\]]+)\]\]/g,
-    '[$1](/notes?search=$1)'
+    (_, link) => `[${link}](/search?q=${link.replace(/-/g, ' ')})`
   );
 
   return (
