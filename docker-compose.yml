@@ -142,19 +142,6 @@ services:
       postgres:
         condition: service_healthy
 
-  note-importer:
-    build:
-      context: .
-      dockerfile: deployments/docker/note-importer/Dockerfile
-    environment:
-      NOTE_SERVICE_URL: "http://note-service:${PORT}"
-      IMPORT_PATH: "/import"
-    volumes:
-      - ./import:/import
-    depends_on:
-      note-service:
-        condition: service_started
-
   web-ui:
     build:
       context: ./web
