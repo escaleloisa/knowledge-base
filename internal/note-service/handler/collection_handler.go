@@ -83,6 +83,9 @@ func (h *Handler) ListCollections(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError, "failed to list collections")
 		return
 	}
+	if collections == nil {
+		collections = []models.Collection{}
+	}
 	response.JSON(w, http.StatusOK, collections)
 }
 

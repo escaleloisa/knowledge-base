@@ -97,6 +97,9 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError, "failed to list notes")
 		return
 	}
+	if notes == nil {
+		notes = []models.Note{}
+	}
 	response.JSON(w, http.StatusOK, notes)
 }
 
